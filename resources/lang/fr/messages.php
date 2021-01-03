@@ -40,6 +40,8 @@ return [
         'reload' => 'Recharger',
         'refresh' => 'Rafraîchir',
         'duplicate' => 'Dupliquer',
+        'remove' => 'Retirer',
+        'back' => 'Retour',
     ],
 
     'fields' => [
@@ -67,7 +69,17 @@ return [
         'category' => 'Catégorie',
         'version' => 'Version',
         'game' => 'Jeu',
+        'price' => 'Prix',
+        'icon' => 'Icône',
+        'server' => 'Serveur',
     ],
+
+    'range' => [
+        'days' => 'Par jours',
+        'months' => 'Par mois',
+    ],
+
+    'loading' => 'Chargement...',
 
     'yes' => 'Oui',
     'no' => 'Non',
@@ -83,6 +95,11 @@ return [
 
     'status-success' => 'L\'action a été effectuée avec succès !',
     'status-error' => 'Une erreur est survenue: :error',
+
+    'theme' => [
+        'light' => 'Thème clair',
+        'dark' => 'Thème sombre',
+    ],
 
     'captcha' => 'La vérification du captcha a échouée, merci de réessayer.',
 
@@ -104,7 +121,7 @@ return [
 
     'profile' => [
         'title' => 'Mon Profil',
-        'change-email' => 'Changer l\'adresse e-mail',
+        'change-email' => 'Changer l\'adresse email',
         'change-password' => 'Changer le mot de passe',
 
         'not-verified' => 'Votre adresse mail n\'est pas vérifiée, veuillez vérifier que vous n\'ayez pas reçu un lien de vérification.',
@@ -129,13 +146,14 @@ return [
             'disabled' => 'Authentification à deux facteurs désactivée.',
         ],
 
-        'email-not-verified' => 'Votre adresse e-mail n\'est pas vérifiée, veuillez vérifier si vous avez reçu un lien de vérification. Si vous ne l\'avez pas reçu, vous pouvez le renvoyer.',
+        'email-not-verified' => 'Votre adresse email n\'est pas vérifiée, veuillez vérifier si vous avez reçu un lien de vérification. Si vous ne l\'avez pas reçu, vous pouvez le renvoyer.',
 
         'money-transfer' => [
             'title' => 'Transfert d\'argent',
             'self' => 'Vous ne pouvez pas vous envoyer d\'argent à vous même.',
             'not-enough' => 'Vous n\'avez pas assez d\'argent pour faire ce transfert.',
             'success' => 'L\'argent a été envoyé avec succès.',
+            'notification' => ':user vous a envoyé :money.',
         ],
     ],
 
@@ -149,7 +167,7 @@ return [
     'comments' => [
         'create' => 'Laisser un commentaire',
         'guest' => 'Vous devez être connecté pour laisser un commentaire.',
-        'author' => '<strong>:user</strong> à commenté le :date',
+        'author' => '<strong>:user</strong> a commenté le :date',
         'your-comment' => 'Votre commentaire',
         'delete-title' => 'Supprimer ?',
         'delete-description' => 'Êtes-vous sûr de vouloir supprimer ce commentaire ?',

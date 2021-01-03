@@ -47,8 +47,7 @@ class ThemeController extends Controller
      */
     public function index()
     {
-        $themes = collect($this->themes->findThemesDescriptions());
-        $availableThemes = collect($this->themes->getOnlineThemes());
+        $themes = $this->themes->findThemesDescriptions();
 
         $current = null;
 
@@ -63,8 +62,8 @@ class ThemeController extends Controller
             'current' => $current,
             'currentPath' => $this->themes->currentTheme() ?? 'default',
             'currentHasConfig' => $this->files->isFile($currentThemeConfig),
-            'availableThemes' => $availableThemes,
-            'themesUpdates' => collect($this->themes->getThemesToUpdate()),
+            'availableThemes' => $this->themes->getOnlineThemes(),
+            'themesUpdates' => $this->themes->getThemesToUpdate(),
         ]);
     }
 
@@ -73,7 +72,7 @@ class ThemeController extends Controller
         $response = redirect()->route('admin.themes.index');
 
         try {
-            app(UpdateManager::class)->forceFetchUpdatesOrFail();
+            app(UpdateManager::class)->forceFetchUpdates();
         } catch (Exception $e) {
             return $response->with('error', trans('messages.status-error', [
                 'error' => $e->getMessage(),
@@ -163,8 +162,10 @@ class ThemeController extends Controller
 
             $this->themes->updateConfig($theme, $validated);
 
-            return redirect()->route('admin.themes.index')->with('success',
-                trans('admin.themes.status.config-updated'));
+            return redirect()->route('admin.themes.index')->with(
+                'success',
+                trans('admin.themes.status.config-updated')
+            );
         } catch (FileNotFoundException $e) {
             return redirect()->back()->with('error', 'Invalid theme configuration.');
         }

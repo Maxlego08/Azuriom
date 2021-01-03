@@ -4,10 +4,13 @@ namespace Azuriom\Games;
 
 use Azuriom\Models\Server;
 use Azuriom\Models\User;
+use Illuminate\Support\Str;
+use RuntimeException;
 
 abstract class ServerBridge
 {
     protected const TIMEOUT = 1;
+
     protected const COMMANDS_TIMEOUT = 3;
 
     /**
@@ -48,7 +51,16 @@ abstract class ServerBridge
      * @param  \Azuriom\Models\User|null  $user
      * @param  bool  $needConnected
      */
-    abstract public function sendCommands(array $commands, User $user = null, bool $needConnected = false);
+    public function sendCommands(array $commands, User $user = null, bool $needConnected = false)
+    {
+        if (! $this->canExecuteCommand()) {
+            report(new RuntimeException('Command cannot be executed with this link.'));
+
+            return false;
+        }
+
+        throw new RuntimeException('The sendCommands() method must be implemented.');
+    }
 
     /**
      * Execute a command on the given server.
@@ -56,7 +68,7 @@ abstract class ServerBridge
      * @param  array  $commands
      * @param  string|null  $playerName
      * @param  bool  $needConnected
-     * @deprecated Use sendCommands() instead.
+     * @deprecated use sendCommands() instead
      */
     public function executeCommands(array $commands, ?string $playerName, bool $needConnected = false)
     {
@@ -73,5 +85,16 @@ abstract class ServerBridge
     public function getDefaultPort()
     {
         return 0;
+    }
+
+    public function replacePlaceholders(string $command, User $user = null)
+    {
+        if ($user === null) {
+            return Str::of($command);
+        }
+
+        return Str::of($command)
+            ->replace('{player}', $user->name)
+            ->replace('{name}', $user->name);
     }
 }

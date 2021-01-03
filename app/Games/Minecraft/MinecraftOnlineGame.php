@@ -11,6 +11,11 @@ use RuntimeException;
 
 class MinecraftOnlineGame extends AbstractMinecraftGame
 {
+    public function id()
+    {
+        return 'mc-online';
+    }
+
     public function getAvatarUrl(User $user, int $size = 64)
     {
         // Fallback to MHF_Steve if the user don't have an uuid
@@ -21,10 +26,10 @@ class MinecraftOnlineGame extends AbstractMinecraftGame
 
     public function getUserUniqueId(string $name)
     {
-        return Cache::remember('minecraft-uuid-cache.'.$name, now()->addMinutes(30), function () use ($name) {
+        return Cache::remember('games.minecraft.uuid.'.$name, now()->addMinutes(30), function () use ($name) {
             $response = Http::get("https://api.mojang.com/users/profiles/minecraft/{$name}");
 
-            $uuid = $response->throw()->json()['id'];
+            $uuid = $response->throw()->json('id');
 
             if ($uuid === null) {
                 throw new RuntimeException("No UUID for {$name}");
@@ -40,14 +45,16 @@ class MinecraftOnlineGame extends AbstractMinecraftGame
             return $user->name;
         }
 
-        $cacheKey = 'minecraft-profile-cache.'.$user->game_id;
+        $cacheKey = 'games.minecraft.profile.'.$user->game_id;
 
         return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($user) {
             $uuid = str_replace('-', '', $user->game_id);
 
             $response = Http::get("https://api.mojang.com/user/profiles/{$uuid}/names");
 
-            return Arr::last($response->throw()->json())['name'];
+            $profile = Arr::last($response->throw()->json());
+
+            return Arr::get($profile, 'name');
         });
     }
 }

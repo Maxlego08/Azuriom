@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-@include('elements.base')
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
@@ -41,7 +40,7 @@
         <h2 class="display-4">{{ trans('errors.install.title') }}</h2>
         <p class="h5 mb-3">{{ trans('errors.install.message') }}</p>
 
-        <a href="https://azuriom.com/documentation" class="btn btn-secondary">
+        <a href="https://azuriom.com/docs" class="btn btn-secondary">
             <i class="fas fa-book"></i> {{ trans('admin.nav.documentation') }}
         </a>
     </main>

@@ -4,9 +4,8 @@ namespace Azuriom\Games\Minecraft\Servers;
 
 use Azuriom\Games\Minecraft\Servers\Protocol\MinecraftPing;
 use Azuriom\Games\ServerBridge;
-use Azuriom\Models\User;
 use Exception;
-use RuntimeException;
+use Illuminate\Support\Arr;
 
 class Ping extends ServerBridge
 {
@@ -23,12 +22,9 @@ class Ping extends ServerBridge
 
     public function verifyLink()
     {
-        return $this->ping($this->server->address, $this->server->port);
-    }
+        $this->ping($this->server->address, $this->server->port);
 
-    public function sendCommands(array $commands, User $user = null, bool $needConnected = false)
-    {
-        report(new RuntimeException('Command cannot be executed with ping link.'));
+        return true;
     }
 
     public function canExecuteCommand()
@@ -49,8 +45,8 @@ class Ping extends ServerBridge
             $response = $pinger->ping(self::TIMEOUT);
 
             return [
-                'players' => $response->players->online,
-                'max_players' => $response->players->max,
+                'players' => Arr::get($response, 'players.online', 0),
+                'max_players' => Arr::get($response, 'players.max', 0),
             ];
         } finally {
             $pinger->close();

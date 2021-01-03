@@ -103,12 +103,32 @@
 
 <div data-server-type="mc-ping" class="form-group d-none">
     <div class="alert alert-info" role="alert">
-        <i class="fas fa-info-circle"></i>
-        {{ trans('admin.servers.ping-no-commands') }}
+        <i class="fas fa-info-circle"></i> {{ trans('admin.servers.ping-no-commands') }}
     </div>
 </div>
 
-<div data-server-type="mc-rcon source-rcon" class="form-group d-none">
+<div data-server-type="source-query source-rcon" class="d-none">
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="querySourcePortInput">{{ trans('admin.servers.fields.query-port') }}</label>
+            <input type="number" min="1" max="65535" class="form-control @error('query-port') is-invalid @enderror" id="querySourcePortInput" name="query-port" value="{{ old('query-port', $server->data['query-port'] ?? '') }}" aria-describedby="queryPortInfo">
+
+            @error('query-port')
+            <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
+            @enderror
+
+            <small id="queryPortInfo" class="form-text">{{ trans('admin.servers.query-port-info') }}</small>
+        </div>
+    </div>
+</div>
+
+<div data-server-type="source-query" class="form-group d-none">
+    <div class="alert alert-info" role="alert">
+        <i class="fas fa-info-circle"></i> {{ trans('admin.servers.query-no-commands') }}
+    </div>
+</div>
+
+<div data-server-type="mc-rcon source-rcon rust-rcon" class="d-none">
     <div class="form-row">
         <div class="form-group col-md-8">
             <label for="rconPasswordInput">{{ trans('admin.servers.fields.rcon-password') }}</label>
@@ -129,35 +149,26 @@
 
         <div class="form-group col-md-4">
             <label for="rconPortInput">{{ trans('admin.servers.fields.rcon-port') }}</label>
-            <input type="number" min="1" max="65535" class="form-control @error('rcon-port') is-invalid @enderror" id="rconPortInput" name="rcon-port" value="{{ old('rcon-port', $server->data['rcon-port'] ?? '25575') }}">
+            <input type="number" min="1" max="65535" class="form-control @error('rcon-port') is-invalid @enderror" id="rconPortInput" name="rcon-port" value="{{ old('rcon-port', $server->data['rcon-port'] ?? '') }}" aria-describedby="rconPortInfo">
 
             @error('rcon-port')
             <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
             @enderror
-        </div>
-    </div>
-</div>
 
-<div data-server-type="source-query" class="form-group d-none">
-    <div class="form-row">
-        <div class="form-group col-md-4">
-            <label for="querySourcePortInput">{{ trans('admin.servers.fields.query-port') }}</label>
-            <input type="number" min="1" max="65535" class="form-control @error('query-port') is-invalid @enderror" id="querySourcePortInput" name="query-port" value="{{ old('query-port', $server->data['query-port'] ?? '27015') }}">
-
-            @error('query-port')
-            <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
-            @enderror
+            <small id="rconPortInfo" class="form-text">{{ trans('admin.servers.query-port-info') }}</small>
         </div>
     </div>
 </div>
 
 <div data-server-type="mc-azlink" class="d-none">
     <div class="form-group custom-control custom-switch">
-        <input type="checkbox" class="custom-control-input" id="hasPingSwitch" name="azlink-ping" data-toggle="collapse" data-target="#hasPingGroup" @if(isset($server) && ($server->data['azlink-ping'] ?? true)) checked @endisset>
+        <input type="checkbox" class="custom-control-input" id="hasPingSwitch" name="azlink-ping" data-toggle="collapse" data-target="#hasPingGroup" @if(isset($server) && ($server->data['azlink-ping'] ?? false)) checked @endisset aria-describedby="pingInfo">
         <label class="custom-control-label" for="hasPingSwitch">{{ trans('admin.servers.azlink.enable-ping') }}</label>
+
+        <small class="form-text" id="pingInfo">{{ trans('admin.servers.azlink.ping-info') }}</small>
     </div>
 
-    <div id="hasPingGroup" class="@if(isset($server) && ($server->data['azlink-ping'] ?? true)) show @else collapse @endisset">
+    <div id="hasPingGroup" class="@if(isset($server) && ($server->data['azlink-ping'] ?? false)) show @else collapse @endisset">
         <div class="form-group custom-control custom-switch">
             <input type="checkbox" class="custom-control-input" id="customPortSwitch" name="azlink-custom-port" data-toggle="collapse" data-target="#customPortGroup" @isset($server->data['azlink-port']) checked @endisset>
             <label class="custom-control-label" for="customPortSwitch">{{ trans('admin.servers.azlink.custom-port') }}</label>
@@ -183,10 +194,12 @@
             </div>
         </div>
 
-        <button type="button" class="btn btn-success mb-4" id="verifyAzLink">
-            <i class="fas fa-check"></i> {{ trans('admin.servers.actions.verify-connection') }}
-            <span class="spinner-border spinner-border-sm btn-spinner d-none" role="status"></span>
-        </button>
+        @isset($server)
+            <button type="button" class="btn btn-success mb-4" id="verifyAzLink">
+                <i class="fas fa-check"></i> {{ trans('admin.servers.actions.verify-connection') }}
+                <span class="spinner-border spinner-border-sm btn-spinner d-none" role="status"></span>
+            </button>
+        @endisset
     </div>
 
     @isset($server)

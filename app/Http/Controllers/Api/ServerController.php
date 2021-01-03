@@ -23,20 +23,22 @@ class ServerController extends Controller
 
         $cpuUsage = $request->json('system.cpu');
         $ramUsage = $request->json('system.ram');
+        $tps = $request->json('worlds.tps');
 
         $server->updateData([
             'players' => count($players),
             'max_players' => $request->json('maxPlayers'),
             'cpu' => $cpuUsage >= 0 ? $cpuUsage : null,
-            'ram' => $ramUsage >= 0 ? $ramUsage : null,
-            'tps' => $request->json('worlds.tps'),
+            'ram' => $ramUsage >= 0 ? (int) $ramUsage : null,
+            'tps' => $tps >= 0 ? round($tps, 2) : null,
             'loaded_chunks' => $request->json('worlds.chunks'),
             'entities' => $request->json('worlds.entities'),
-        ], $request->json('full'));
+        ], $request->json('full', false));
 
         $commands = $server->commands()
             ->whereIn('player_name', $players)
             ->orWhere('need_online', false)
+            ->limit(100)
             ->get();
 
         if (! $commands->isEmpty()) {
@@ -48,6 +50,9 @@ class ServerController extends Controller
                 });
         }
 
-        return response()->json(['commands' => $commands]);
+        return response()->json([
+            'commands' => $commands,
+            'retry' => $commands->count() > 100,
+        ]);
     }
 }

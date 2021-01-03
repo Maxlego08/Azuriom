@@ -8,6 +8,7 @@ use Azuriom\Models\Image;
 use Azuriom\Models\Page;
 use Azuriom\Models\Post;
 use Azuriom\Models\User;
+use Azuriom\Support\Charts;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 
@@ -34,7 +35,6 @@ class AdminController extends Controller
     {
         $updates = $this->app->make(UpdateManager::class);
         $newVersion = $updates->hasUpdate() ? $updates->getLastVersion() : null;
-        $apiAlerts = $updates->getApiAlerts();
 
         return view('admin.dashboard', [
             'secure' => $request->secure() || ! $this->app->isProduction(),
@@ -42,38 +42,17 @@ class AdminController extends Controller
             'postCount' => Post::count(),
             'pageCount' => Page::count(),
             'imageCount' => Image::count(),
-            'recentUsers' => $this->getRecentUsers(),
+            'newUsersPerMonths' => Charts::countByMonths(User::query()),
+            'newUsersPerDays' => Charts::countByDays(User::query()),
             'activeUsers' => $this->getActiveUsers(),
             'newVersion' => $newVersion,
-            'apiAlerts' => $apiAlerts,
+            'apiAlerts' => $updates->getApiAlerts(),
         ]);
     }
 
     public function fallback()
     {
         return response()->view('admin.errors.404', [], 404);
-    }
-
-    protected function getRecentUsers()
-    {
-        $date = now()->subMonths(6);
-        $recentUsers = [];
-
-        $queryUsers = User::where('created_at', '>=', $date)
-            ->without('role')
-            ->get(['id', 'created_at'])
-            ->countBy(function ($user) {
-                return $user->created_at->translatedFormat('M Y');
-            });
-
-        for ($i = 0; $i < 6; $i++) {
-            $date->addMonth();
-            $time = $date->translatedFormat('M Y');
-
-            $recentUsers[$time] = $queryUsers->get($time, 0);
-        }
-
-        return collect($recentUsers);
     }
 
     protected function getActiveUsers()

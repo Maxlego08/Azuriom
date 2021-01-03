@@ -3,11 +3,14 @@
 namespace Azuriom\Models;
 
 use Azuriom\Models\Traits\InteractsWithMoney;
+use Azuriom\Models\Traits\Searchable;
 use Azuriom\Notifications\ResetPassword as ResetPasswordNotification;
 use Azuriom\Notifications\VerifyEmail as VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @property int $id
@@ -22,7 +25,6 @@ use Illuminate\Notifications\Notifiable;
  * @property string|null $last_login_ip
  * @property \Carbon\Carbon|null $last_login_at
  * @property string|null $google_2fa_secret
- * @property bool $is_banned
  * @property bool $is_deleted
  * @property string|null $remember_token
  * @property \Carbon\Carbon $created_at
@@ -40,8 +42,10 @@ use Illuminate\Notifications\Notifiable;
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
+    use HasFactory;
     use InteractsWithMoney;
     use Notifiable;
+    use Searchable;
 
     /**
      * The attributes that are mass assignable.
@@ -49,7 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'money', 'game_id', 'access_token', 'google_2fa_secret', 'is_banned',
+        'name', 'email', 'password', 'money', 'role_id', 'game_id', 'access_token', 'google_2fa_secret',
     ];
 
     /**
@@ -67,9 +71,9 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array
      */
     protected $casts = [
+        'money' => 'float',
         'email_verified_at' => 'datetime',
         'last_login_at' => 'datetime',
-        'is_banned' => 'boolean',
         'is_deleted' => 'boolean',
     ];
 
@@ -80,6 +84,15 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $with = [
         'role',
+    ];
+
+    /**
+     * The attributes that can be search for.
+     *
+     * @var array
+     */
+    protected $searchable = [
+        'email', 'name', 'game_id',
     ];
 
     /**
@@ -147,19 +160,35 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getAvatar(int $size = 64)
     {
-        /** @noinspection PhpDeprecationInspection */
+        /* @noinspection PhpDeprecationInspection */
         return game()->getAvatarUrl($this, $size);
     }
 
-    public function refreshActiveBan()
+    public function isBanned(bool $useCache = false)
     {
-        $isBanned = $this->ban !== null;
-
-        if ($this->is_banned !== $isBanned) {
-            $this->update(['is_banned' => $isBanned]);
+        if ($useCache) {
+            return Cache::remember("users.{$this->id}.banned", now()->addHour(), function () {
+                return $this->ban !== null;
+            });
         }
 
-        return $this;
+        return $this->ban !== null;
+    }
+
+    public function isDeleted()
+    {
+        return $this->is_deleted;
+    }
+
+    public function flushBanCache()
+    {
+        Cache::forget("users.{$this->id}.banned");
+    }
+
+    /** @deprecated use isBanned() */
+    public function getIsBannedAttribute()
+    {
+        return $this->isBanned();
     }
 
     public function hasPermission($permission)
@@ -201,20 +230,5 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification()
     {
         $this->notify(new VerifyEmailNotification());
-    }
-
-    /**
-     * Determine if the user has verified their email address.
-     * If email verification is disabled, this return true to emulates the verification.
-     *
-     * @return bool
-     */
-    public function hasVerifiedEmail()
-    {
-        if (! setting('mail.users_email_verification')) {
-            return true;
-        }
-
-        return parent::hasVerifiedEmail();
     }
 }
